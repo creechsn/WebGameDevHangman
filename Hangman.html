@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Assignment 3: Hangman</title>
+  <meta charset="utf-8">
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+
+	<!-- jQuery library -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+	<!-- Latest compiled JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+<!-----------------------------------------------------------------
+//------ Page CSS
+//----------------------------------------------------------------->
+<style type="text/css">
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+a {
+	cursor: pointer;
+}
+
+#myCanvas{
+	margin-top: 50px;
+}
+
+.dropdown-content a:hover {background-color: #ddd;}
+
+.dropdown:hover .dropdown-content {display: block;}
+
+.dropdown:hover .btn {background-color: #3e8e41;}
+
+#reset{
+	display: none;
+}
+
+</style>
+</head>
+<body>
+<!-----------------------------------------------------------------
+//------ Web Page Markup
+//----------------------------------------------------------------->
+<div class="container">
+	<div class=row>
+		<div class="col-sm-2">
+		</div>
+		<div class="col-sm-8">
+  			<h1>Assignment 3: Hangman</h1>
+  			<h4>Please Select Game Difficulty</h4>
+		</div>
+		<div class="col-sm-2">
+		</div>
+  	</div>
+<div class=row>
+	<div class="col-sm-6">
+	<div class="dropdown">
+		<button class="btn btn-primary">Difficulty</button>
+			<div class="dropdown-content">
+			<a onclick="EasySelected()">Easy</a>
+			<a onclick="MediumSelected()">Medium</a>
+			<a onclick="HardSelected()">Hard</a>
+		</div>
+	</div>
+	</div>
+<div class="col-sm-6">
+	<div class="phrase">
+		<h1 id ="generatedWord"></h1>
+		<h1 id="chosenWord"></h1>
+	</div>
+</div>
+</div>
+	<div class="row">
+		<div class="col-sm-2">
+			
+		</div>
+		<div class="col-sm-10">
+			<canvas id="myCanvas" width="700px" height="500px" style="border:1px solid #000000;"></canvas>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-4">
+			<h4>Guesses: </h4> <p id="DisplayedGuesses"></p>
+		</div>
+		<div class="col-sm-8">
+			<h2>Enter your letter guess below:</h2><input id="UserInput" maxlength="1" minlength="1" type="text" name="letterGuess"> 
+			<button type="button" onclick="btnSubmit()" class="btn btn-primary">Submit</button> 
+			<button type="button" id="reset" class="btn btn-primary" onClick="window.location.reload();">Reset</button>
+	</div>
+
+</div>
+
+</body>
+</html>
+<script>
+//-----------------------------------------------------------------
+//------ Difficulty Choices
+//-----------------------------------------------------------------
+
+	var difficulty;
+
+	var guesses = [];
+
+	var letter = "";
+
+	var guessCount = 0;
+
+	var ChallengeWord = "";
+
+	var lives = 10;
+
+	function EasySelected(){
+		Reset();
+
+		difficulty = "Easy";
+
+		DifficultySelected();
+		
+	}
+
+	function MediumSelected(){
+		Reset();
+
+		difficulty = "Medium";
+
+		DifficultySelected();
+		
+	}
+
+
+	function HardSelected(){
+		Reset();
+
+		difficulty = "Hard"
+
+		DifficultySelected();
+	}
+
+//-----------------------------------------------------------------
+//------        *Call API functionality
+//-----------------------------------------------------------------
+	function DifficultySelected(){
+		var xhttp = new XMLHttpRequest();
+  		xhttp.onreadystatechange = function() {
+    	if (this.readyState == 4 && this.status == 200) {
+
+    		Finalword = this.responseText;
+
+    		var Final = JSON.parse(Finalword);
+
+    		ChallengeWord = Final.word;
+
+    		console.log(ChallengeWord);
+
+      		//document.getElementById("chosenWord").innerHTML = Final.word;
+
+      		var characterCount = Final.word.length;
+
+      		console.log(characterCount);
+
+      		var i;
+
+      		for(i = 0; i < characterCount; i ++){
+
+      			document.getElementById("chosenWord").innerHTML += "_ ";
+      			}
+      		}
+	  	};
+		  xhttp.open("GET", "https://hangman-api.lively.software?difficulty="+ difficulty, true);
+		  xhttp.send();
+	}
+
+
+
+
+	function btnSubmit(){
+
+		var guess = document.getElementById("UserInput").value;
+
+		var letter = guess.charAt(0);
+
+		if(difficulty == null){
+			alert("You must choose a difficulty.")
+		}
+		else if(guess == null){
+			
+			alert("You must enter a value")
+		}
+		else{
+
+			if(guesses.includes(letter) == false){
+
+				guesses.push(letter);
+				document.getElementById("DisplayedGuesses").innerHTML = guesses;
+
+				Search();
+
+			}
+			else{
+				alert("That letter has already been guessed");
+			}
+		}
+
+	}
+
+
+
+
+	function Search(){
+
+		letters = document.getElementById("generatedWord");
+        letters.innerHTML = '<h2 class="current-word"></h2>';
+
+        var placement = ChallengeWord.search(letter); 
+
+		if(ChallengeWord.includes(letter) == false){
+
+			alert("working")
+
+            letter = ChallengeWord.charAt(placement).toUpperCase();
+            generatedWord.insertAdjacentHTML('beforeend', letter);
+			
+       		}
+
+       	else{ 
+
+       		
+
+       		guessCount ++;
+
+       		alert(guessCount)
+
+       			if(guessCount == 1){
+       				DrawHead();
+       			}
+       			else if(guessCount == 2){
+       				DrawBody();
+       			}
+				else if(guessCount == 3){
+       				DrawLeftArm();
+       			}
+       			else if(guessCount == 4){
+       				DrawRightArm();
+       			}
+       			else if(guessCount == 5){
+       				DrawRightLeg();
+       			}
+       			else{
+
+       				alert("You Lost!");
+
+       				document.getElementById("reset").style.display = "inline-block";
+
+
+
+       			}
+
+
+       		}
+		};	
+
+
+	function Reset(){
+
+		var guess = "";
+
+		var letter = "";
+
+		var guesses = [];
+
+	}
+
+	function DrawHead(){
+		var c = document.getElementById("myCanvas");
+		var ctx = c.getContext("2d");
+		ctx.beginPath();
+		ctx.arc(100, 75, 50, 0, 2 * Math.PI);
+		ctx.stroke();
+	}
+
+	function DrawBody(){
+		
+		var c = document.getElementById("myCanvas");
+		var ctx = c.getContext("2d");
+		ctx.beginPath();
+		ctx.moveTo(100, 100);
+		ctx.lineTo(100, 200);
+		ctx.stroke();
+	}
+
+	function DrawLeftArm(){
+		var c = document.getElementById("myCanvas");
+		var ctx = c.getContext("2d");
+		ctx.beginPath();
+		ctx.moveTo(50, 100);
+		ctx.lineTo(100, 100);
+		ctx.stroke();
+	}
+
+	function DrawRightArm(){
+		var c = document.getElementById("myCanvas");
+		var ctx = c.getContext("2d");
+		ctx.beginPath();
+		ctx.moveTo(200, 100);
+		ctx.lineTo(150, 100);
+		ctx.stroke();
+	}
+
+	function DrawRightLeg(){
+		var c = document.getElementById("myCanvas");
+		var ctx = c.getContext("2d");
+		ctx.beginPath();
+		ctx.moveTo(100, 100);
+		ctx.lineTo(150, 120);
+		ctx.stroke();
+	}
+
+
+</script>
